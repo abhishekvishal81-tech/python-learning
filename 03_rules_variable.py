@@ -1,0 +1,9 @@
+a=23
+aaa=435
+harry=34
+vishal=45.7
+_vishal= 99
+@sam =56 # ye nhi chalega, @ ke sath nhi chalta
+#@sam=66 # ye chal sakta hai 
+0sam =44 # number se v shuru nhi hota hai
+sas kas =44 # space deke v variable define nhi hoga
