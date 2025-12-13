@@ -1,2 +1,1 @@
-a=input("Enter the value of a :")
-print (type(a))
+#write aprogram to detect double space in a string .
