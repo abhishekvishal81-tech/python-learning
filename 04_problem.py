@@ -1,3 +1,4 @@
-a=int(input("Enter number 1:"))
-b=int(input("Enter number 2:"))
-print("a is greater than b is  ",a>b)
+#replace the double space from problem 3 with single space.
+name ="abhishek is a good  boy and  "
+print(name.replace("  ", " "))
+print(name)#immutability of string,means u can not change them by running functions on them
