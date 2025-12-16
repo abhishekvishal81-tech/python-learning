@@ -1,5 +1,14 @@
-#write a python program to display a user entered name followed by good afternoodusing input() function.
-name=input("enter your name:-")
+#write a program to create a dictionary of hindi words with 
+# values as their english translation.provide user with an option to look it up!
 
-print(f"good afternoon {name}") # using (f string) help to deliver input name not name
 
+words={
+    "madad":"help",
+    "kursi":"chair",
+    "ghoda":"horse"
+}
+
+word =input("enter the word you want meaning of: ")
+
+print(words[word])
+print(words.get(word, "Word not found in dictionary"))

@@ -1,5 +1,21 @@
-#write a program to fill a letter template given below with name and date.
-letter ='''dear <|name|>,
-you are selected!
-<|date|>'''
-print(letter.replace("<|name|>","abhishek").replace("<|date|","13 december 2025"))
+#write a program to input eight numbers from the user and display all the unique numbers(once).
+s=set()
+
+n=input("enter no.1:-")
+s.add(int(n))
+n=input("enter no.2:-")
+s.add(int(n))
+n=input("enter no.3:-")
+s.add(int(n))
+n=input("enter no.4:-")
+s.add(int(n))
+n=input("enter no.5:-")
+s.add(int(n))
+n=input("enter no.6:-")
+s.add(int(n))
+n=input("enter no.7:-")
+s.add(int(n))
+n=input("enter no.8:-")
+s.add(int(n))
+
+print(s)

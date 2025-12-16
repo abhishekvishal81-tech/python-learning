@@ -1,3 +1,10 @@
-#write a program to format the following letter using escape sequence
-letter="dear abhishek,\n\tThis is a nice subject.\nThanks!"
-print(letter)
+# s={}
+#what id the type of's'?
+
+
+#type this on repl
+#s={}
+#type(s) #<class'dict'> as output ,its not a set s={},its a dictionary
+
+s={}
+print(type(s))
