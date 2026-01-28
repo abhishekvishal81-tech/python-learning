@@ -1,0 +1,91 @@
+{
+  "stations": [
+    {
+      "id": "ST001",
+      "name": "FastCharge Hub",
+      "type": "CHARGER",
+      "price": 12,
+      "slots": 6,
+      "booked_slots": 2,
+      "city": "Bengaluru",
+      "area": "Central",
+      "lat": 12.9716,
+      "lng": 77.5946
+    },
+    {
+      "id": "ST002",
+      "name": "DC Quick Point",
+      "type": "CHARGER",
+      "price": 14,
+      "slots": 4,
+      "booked_slots": 2,
+      "city": "Bengaluru",
+      "area": "CBD",
+      "lat": 12.975,
+      "lng": 77.605
+    },
+    {
+      "id": "ST003",
+      "name": "City Center Parking",
+      "type": "PARKING",
+      "price": 20,
+      "slots": 10,
+      "booked_slots": 3,
+      "city": "Bengaluru",
+      "area": "Mall Zone",
+      "lat": 12.9352,
+      "lng": 77.6245
+    }
+  ],
+  "bookings": [
+    {
+      "booking_id": "2BB8DFA1",
+      "created_at": "2026-01-25 00:43:48",
+      "station_id": "ST001",
+      "station_name": "FastCharge Hub",
+      "slot": 1,
+      "vehicle_number": "jh01as1395",
+      "from_time": "10:00",
+      "to_time": "10:30",
+      "payment_mode": "UPI",
+      "amount": 60,
+      "payment_status": "PENDING",
+      "otp": "4322",
+      "otp_verified": false,
+      "status": "CONFIRMED"
+    },
+    {
+      "booking_id": "4A67A100",
+      "created_at": "2026-01-25 00:45:14",
+      "station_id": "ST002",
+      "station_name": "DC Quick Point",
+      "slot": 1,
+      "vehicle_number": "jh01as1363",
+      "from_time": "10:00",
+      "to_time": "10:30",
+      "payment_mode": "Cash",
+      "amount": 70,
+      "payment_status": "SUCCESS",
+      "otp": "6467",
+      "otp_verified": false,
+      "status": "CONFIRMED"
+    },
+    {
+      "booking_id": "32731C9D",
+      "created_at": "2026-01-25 00:46:11",
+      "station_id": "ST003",
+      "station_name": "City Center Parking",
+      "slot": 1,
+      "vehicle_number": "jh01as1363",
+      "from_time": "10:00",
+      "to_time": "10:30",
+      "payment_mode": "Cash",
+      "amount": 20,
+      "payment_status": "SUCCESS",
+      "otp": "5048",
+      "otp_verified": false,
+      "status": "CONFIRMED"
+    }
+  ],
+  "partners": []
+}

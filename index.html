@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DC PATH MAP - Live</title>
+
+  <!-- Leaflet (OpenStreetMap) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    :root{
+      --bg:#060B14;
+      --card:rgba(18, 27, 52, 0.88);
+      --card2:rgba(10, 18, 40, 0.92);
+      --stroke:rgba(255,255,255,0.08);
+      --text:#EAF1FF;
+      --muted:rgba(234,241,255,0.65);
+      --green:#27F3A4;
+      --blue:#2D7DFF;
+      --danger:#FF4D4D;
+      --glass:rgba(20,40,90,0.35);
+    }
+
+    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;}
+    body{
+      margin:0;background:radial-gradient(1200px 800px at 10% 10%, rgba(45,125,255,0.22), transparent 60%),
+      radial-gradient(1200px 800px at 90% 20%, rgba(39,243,164,0.14), transparent 60%),
+      var(--bg);
+      color:var(--text);
+      overflow-x:hidden;
+    }
+
+    .topbar{
+      position:sticky;top:0;z-index:50;
+      padding:14px 14px 10px;
+      background:linear-gradient(180deg, rgba(6,11,20,0.95), rgba(6,11,20,0.55));
+      border-bottom:1px solid var(--stroke);
+      backdrop-filter: blur(10px);
+    }
+    .brand{
+      display:flex;align-items:center;gap:10px;
+    }
+    .logo{
+      width:44px;height:44px;border-radius:14px;
+      background:linear-gradient(135deg, rgba(39,243,164,0.9), rgba(45,125,255,0.9));
+      display:grid;place-items:center;
+      box-shadow:0 10px 30px rgba(45,125,255,0.25);
+      flex-shrink:0;
+    }
+    .logo span{font-size:22px}
+    .titlewrap{line-height:1.05}
+    .titlewrap h1{margin:0;font-size:18px;letter-spacing:0.3px}
+    .titlewrap p{margin:3px 0 0;font-size:12px;color:var(--muted)}
+    .topactions{
+      margin-left:auto;display:flex;gap:10px;align-items:center;
+    }
+    .row{
+      display:flex;align-items:center;gap:12px;
+    }
+    .btn{
+      border:1px solid var(--stroke);
+      background:linear-gradient(135deg, rgba(39,243,164,0.22), rgba(45,125,255,0.22));
+      color:var(--text);
+      padding:10px 14px;border-radius:14px;
+      cursor:pointer;
+      font-weight:600;
+      box-shadow:0 10px 25px rgba(0,0,0,0.25);
+      transition:transform 0.15s ease;
+    }
+    .btn:active{transform:scale(0.98)}
+    .btn.secondary{
+      background:rgba(255,255,255,0.04);
+    }
+
+    .wrap{
+      padding:12px 14px 18px;
+      max-width:1000px;margin:0 auto;
+    }
+
+    .mapCard{
+      border:1px solid var(--stroke);
+      border-radius:22px;
+      overflow:hidden;
+      background:rgba(255,255,255,0.03);
+      box-shadow:0 18px 45px rgba(0,0,0,0.35);
+    }
+
+    #map{
+      height:360px;width:100%;
+      background:#0A1022;
+    }
+
+    .mapOverlay{
+      position:relative;
+      margin-top:-92px;
+      padding:0 10px 12px;
+    }
+
+    .glassPanel{
+      border:1px solid var(--stroke);
+      background:rgba(0,0,0,0.22);
+      backdrop-filter: blur(16px);
+      border-radius:22px;
+      padding:14px;
+      box-shadow:0 20px 55px rgba(0,0,0,0.35);
+    }
+
+    .tabs{
+      display:flex;gap:10px;flex-wrap:wrap;
+      margin-bottom:12px;
+    }
+    .tab{
+      padding:8px 12px;border-radius:999px;
+      border:1px solid var(--stroke);
+      color:var(--muted);
+      cursor:pointer;
+      background:rgba(255,255,255,0.03);
+      font-weight:700;font-size:13px;
+    }
+    .tab.active{
+      color:var(--text);
+      border-color:rgba(39,243,164,0.45);
+      background:rgba(39,243,164,0.10);
+    }
+
+    .search{
+      width:100%;
+      padding:12px 14px;border-radius:16px;
+      border:1px solid var(--stroke);
+      background:rgba(255,255,255,0.03);
+      color:var(--text);
+      outline:none;
+      margin-bottom:12px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+    @media(min-width:860px){
+      .grid{grid-template-columns:1.1fr 0.9fr;}
+      #map{height:430px;}
+    }
+
+    .listCard{
+      border:1px solid var(--stroke);
+      background:var(--card);
+      border-radius:22px;
+      padding:14px;
+    }
+
+    .station{
+      border:1px solid var(--stroke);
+      background:rgba(255,255,255,0.03);
+      border-radius:18px;
+      padding:12px;
+      display:flex;justify-content:space-between;gap:10px;
+      margin-bottom:10px;
+    }
+    .station h3{margin:0;font-size:16px}
+    .meta{
+      display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;
+      color:var(--muted);font-size:12px;
+    }
+    .pill{
+      border:1px solid var(--stroke);
+      padding:6px 10px;border-radius:999px;
+      background:rgba(255,255,255,0.03);
+      font-weight:700;
+    }
+    .pill.green{border-color:rgba(39,243,164,0.35)}
+    .pill.blue{border-color:rgba(45,125,255,0.35)}
+    .pill.red{border-color:rgba(255,77,77,0.35)}
+    .actions{
+      display:flex;flex-direction:column;gap:8px;align-items:flex-end;
+      min-width:140px;
+    }
+    .smallbtn{
+      width:100%;
+      border:none;
+      padding:10px 12px;border-radius:14px;
+      cursor:pointer;
+      font-weight:800;
+      color:#06121a;
+      background:linear-gradient(135deg, var(--green), var(--blue));
+    }
+    .smallbtn.gray{
+      background:rgba(255,255,255,0.08);
+      color:var(--text);
+      border:1px solid var(--stroke);
+    }
+
+    .rightCard{
+      border:1px solid var(--stroke);
+      background:var(--card2);
+      border-radius:22px;
+      padding:14px;
+      min-height:260px;
+    }
+
+    .sectionTitle{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:10px;
+    }
+    .sectionTitle h2{margin:0;font-size:16px}
+    .hint{font-size:12px;color:var(--muted)}
+    .field{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    .field input,.field select{
+      width:100%;
+      padding:12px;border-radius:14px;
+      border:1px solid var(--stroke);
+      background:rgba(255,255,255,0.03);
+      color:var(--text);
+      outline:none;
+    }
+    .field label{
+      grid-column:1/-1;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:6px;
+    }
+    .full{grid-column:1/-1}
+
+    .primaryWide{
+      margin-top:12px;
+      width:100%;
+      padding:13px 14px;
+      border:none;border-radius:16px;
+      cursor:pointer;
+      font-weight:900;
+      background:linear-gradient(135deg, var(--green), var(--blue));
+      color:#06121a;
+    }
+
+    .statusBox{
+      margin-top:12px;
+      border:1px solid var(--stroke);
+      background:rgba(255,255,255,0.03);
+      border-radius:18px;
+      padding:12px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+    }
+
+    .drawer{
+      position:fixed;inset:0;
+      background:rgba(0,0,0,0.55);
+      display:none;
+      align-items:flex-end;
+      z-index:100;
+    }
+    .drawer.open{display:flex;}
+    .sheet{
+      width:100%;
+      max-height:86vh;
+      border-top-left-radius:24px;
+      border-top-right-radius:24px;
+      background:rgba(10,18,40,0.95);
+      border:1px solid var(--stroke);
+      padding:14px;
+      overflow:auto;
+      backdrop-filter: blur(14px);
+    }
+    .sheetHead{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:10px;
+    }
+    .sheetHead h2{margin:0;font-size:16px}
+    .closeBtn{
+      border:1px solid var(--stroke);
+      background:rgba(255,255,255,0.05);
+      color:var(--text);
+      padding:8px 12px;border-radius:14px;
+      cursor:pointer;
+      font-weight:800;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+      color:var(--text);
+    }
+    th,td{
+      border-bottom:1px solid rgba(255,255,255,0.08);
+      padding:10px 8px;
+      text-align:left;
+    }
+    th{color:var(--muted);font-weight:800}
+  </style>
+</head>
+
+<body>
+
+  <div class="topbar">
+    <div class="row">
+      <div class="brand">
+        <div class="logo"><span>⚡</span></div>
+        <div class="titlewrap">
+          <h1>DC PATH MAP</h1>
+          <p>Find • Book • Charge • Park</p>
+        </div>
+      </div>
+
+      <div class="topactions">
+        <button class="btn secondary" id="btnBookings">My Bookings</button>
+        <button class="btn" id="btnMyCar">My Car</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="mapCard">
+      <div id="map"></div>
+    </div>
+
+    <div class="mapOverlay">
+      <div class="glassPanel">
+        <div class="tabs">
+          <div class="tab active" data-filter="all">All</div>
+          <div class="tab" data-filter="parking">Parking</div>
+          <div class="tab" data-filter="charger">Charger</div>
+        </div>
+
+        <input class="search" id="search" placeholder="Search station name..." />
+
+        <div class="grid">
+          <div class="listCard">
+            <div class="sectionTitle">
+              <h2>Nearby Stations</h2>
+              <span class="hint" id="countText">0 found</span>
+            </div>
+            <div id="stationsList"></div>
+          </div>
+
+          <div class="rightCard">
+            <div class="sectionTitle">
+              <h2 id="bookingTitle">Booking</h2>
+              <span class="hint" id="bookingHint">Select a station to book</span>
+            </div>
+
+            <div class="statusBox" id="routeBox">
+              Route: Not started<br/>
+              ETA: -- minutes
+            </div>
+
+            <div class="field">
+              <label>Vehicle Number</label>
+              <input class="full" id="vehicleNo" placeholder="Example: KA01AB1234" />
+
+              <label>Time Slot</label>
+              <input id="fromTime" type="time" value="10:00"/>
+              <input id="toTime" type="time" value="10:30"/>
+
+              <label>Payment Mode</label>
+              <select class="full" id="payMode">
+                <option>UPI (Unified Payments Interface)</option>
+                <option>Card</option>
+                <option>Cash</option>
+              </select>
+            </div>
+
+            <button class="primaryWide" id="confirmBtn" disabled>Confirm Booking</button>
+
+            <div class="statusBox" id="bookingStatus">
+              Payment Status: --<br/>
+              OTP: --<br/>
+              QR: will show after booking
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- My Bookings Drawer -->
+  <div class="drawer" id="drawerBookings">
+    <div class="sheet">
+      <div class="sheetHead">
+        <h2>My Bookings</h2>
+        <button class="closeBtn" id="closeBookings">Close</button>
+      </div>
+      <div id="bookingsTableWrap"></div>
+    </div>
+  </div>
+
+<script>
+  // =========================
+  // CONFIG
+  // =========================
+  const API_BASE = "http://127.0.0.1:5000/api";
+
+  // =========================
+  // STATE
+  // =========================
+  let stations = [];
+  let currentFilter = "all";
+  let selectedStation = null;
+
+  // car gps
+  let map, carMarker, routeLine, stationMarkers = [];
+  let lastCarLatLng = null;
+
+  // =========================
+  // MAP INIT (Leaflet)
+  // =========================
+  function initMap() {
+    map = L.map("map").setView([12.9716, 77.5946], 13); // Bengaluru default
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "© OpenStreetMap"
+    }).addTo(map);
+
+    // car marker (emoji)
+    const carIcon = L.divIcon({
+      className: "",
+      html: `<div style="
+        width:42px;height:42px;border-radius:16px;
+        display:grid;place-items:center;
+        background:linear-gradient(135deg, rgba(39,243,164,0.95), rgba(45,125,255,0.95));
+        border:1px solid rgba(255,255,255,0.25);
+        box-shadow:0 16px 40px rgba(0,0,0,0.35);
+        font-size:20px;
+      ">🚗</div>`,
+      iconSize: [42, 42],
+      iconAnchor: [21, 21]
+    });
+
+    carMarker = L.marker([12.9716, 77.5946], { icon: carIcon }).addTo(map);
+  }
+
+  // =========================
+  // FETCH STATIONS
+  // =========================
+  async function fetchStations() {
+    const res = await fetch(`${API_BASE}/stations`);
+    const data = await res.json();
+    stations = data.stations || [];
+    renderStations();
+    drawStationsOnMap();
+  }
+
+  function drawStationsOnMap() {
+    // clear old markers
+    stationMarkers.forEach(m => map.removeLayer(m));
+    stationMarkers = [];
+
+    stations.forEach(s => {
+      const iconHtml = s.type === "charger" ? "⚡" : "🅿️";
+      const marker = L.marker([s.lat, s.lng], {
+        icon: L.divIcon({
+          className: "",
+          html: `<div style="
+            padding:8px 10px;border-radius:14px;
+            background:rgba(10,18,40,0.92);
+            border:1px solid rgba(255,255,255,0.12);
+            color:#EAF1FF;
+            font-weight:800;
+            box-shadow:0 16px 40px rgba(0,0,0,0.35);
+            white-space:nowrap;
+          ">${iconHtml} ${s.name}</div>`,
+          iconSize: [140, 34],
+          iconAnchor: [70, 17]
+        })
+      }).addTo(map);
+
+      marker.on("click", () => selectStation(s.id));
+      stationMarkers.push(marker);
+    });
+  }
+
+  // =========================
+  // UI RENDER
+  // =========================
+  function renderStations() {
+    const list = document.getElementById("stationsList");
+    const q = document.getElementById("search").value.toLowerCase().trim();
+
+    let filtered = stations.filter(s => {
+      const okType = (currentFilter === "all") ? true : s.type === currentFilter;
+      const okSearch = s.name.toLowerCase().includes(q);
+      return okType && okSearch;
+    });
+
+    document.getElementById("countText").innerText = `${filtered.length} found`;
+    list.innerHTML = "";
+
+    filtered.forEach(s => {
+      const available = s.available_slots ?? 0;
+      const price = s.price ?? "--";
+      const unit = s.type === "charger" ? "/unit" : "/hr";
+
+      const el = document.createElement("div");
+      el.className = "station";
+      el.innerHTML = `
+        <div>
+          <h3>${s.name}</h3>
+          <div class="meta">
+            <span class="pill ${s.type === "charger" ? "green" : "blue"}">${s.type.toUpperCase()}</span>
+            <span class="pill">₹${price}${unit}</span>
+            <span class="pill">Slots: ${s.total_slots}</span>
+            <span class="pill ${available>0 ? "green":"red"}">Available: ${available}</span>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="smallbtn" onclick="selectStation('${s.id}')">Book Now</button>
+          <button class="smallbtn gray" onclick="focusStation('${s.id}')">View on Map</button>
+        </div>
+      `;
+      list.appendChild(el);
+    });
+  }
+
+  function focusStation(id){
+    const s = stations.find(x => x.id === id);
+    if(!s) return;
+    map.setView([s.lat, s.lng], 15);
+  }
+
+  function selectStation(id){
+    selectedStation = stations.find(x => x.id === id);
+    if(!selectedStation) return;
+
+    document.getElementById("bookingTitle").innerText = selectedStation.name;
+    document.getElementById("bookingHint").innerText =
+      `${selectedStation.type.toUpperCase()} • ₹${selectedStation.price}${selectedStation.type==="charger"?"/unit":"/hr"} • Choose time + confirm`;
+
+    document.getElementById("confirmBtn").disabled = false;
+
+    // draw route line from car to station (simple straight line demo)
+    if(routeLine) map.removeLayer(routeLine);
+
+    const carPos = carMarker.getLatLng();
+    routeLine = L.polyline([carPos, [selectedStation.lat, selectedStation.lng]], {
+      weight: 5,
+      opacity: 0.85
+    }).addTo(map);
+
+    // compute fake ETA using distance
+    const eta = estimateETA(carPos.lat, carPos.lng, selectedStation.lat, selectedStation.lng);
+    document.getElementById("routeBox").innerHTML =
+      `Route: <b>Active</b><br/>ETA: <b>${eta} minutes</b><br/><span style="color:rgba(234,241,255,0.55)">AI calculated time based on distance + traffic assumption</span>`;
+  }
+
+  function estimateETA(lat1,lng1,lat2,lng2){
+    // very basic distance (km)
+    const R = 6371;
+    const dLat = (lat2-lat1) * Math.PI/180;
+    const dLng = (lng2-lng1) * Math.PI/180;
+    const a = Math.sin(dLat/2)**2 +
+      Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+    const c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+    const km = R*c;
+
+    // assume avg speed 25 km/h city
+    const mins = Math.max(3, Math.round((km/25)*60));
+    return mins;
+  }
+
+  // =========================
+  // BOOKING + PAYMENT SIM
+  // =========================
+  async function confirmBooking(){
+    if(!selectedStation) return;
+
+    const vehicle = document.getElementById("vehicleNo").value.trim();
+    const fromT = document.getElementById("fromTime").value;
+    const toT = document.getElementById("toTime").value;
+    const payMode = document.getElementById("payMode").value;
+
+    if(!vehicle){
+      alert("Enter vehicle number!");
+      return;
+    }
+
+    const payload = {
+      station_id: selectedStation.id,
+      vehicle_number: vehicle,
+      from_time: fromT,
+      to_time: toT,
+      payment_mode: payMode
+    };
+
+    const res = await fetch(`${API_BASE}/book`, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if(!data.success){
+      document.getElementById("bookingStatus").innerHTML =
+        `Payment Status: <b style="color:var(--danger)">FAILED</b><br/>OTP: --<br/>QR: --`;
+      alert(data.message || "Booking failed");
+      return;
+    }
+
+    const b = data.booking;
+
+    // after booking show direction text
+    const carPos = carMarker.getLatLng();
+    const eta = estimateETA(carPos.lat, carPos.lng, selectedStation.lat, selectedStation.lng);
+
+    document.getElementById("bookingStatus").innerHTML =
+      `Payment Status: <b style="color:var(--green)">${b.payment_status}</b><br/>
+       OTP: <b>${b.otp}</b><br/>
+       Booking ID: <b>${b.booking_id}</b><br/>
+       Direction: <b>Move to ${selectedStation.name}</b><br/>
+       ETA: <b>${eta} minutes</b>`;
+
+    // zoom to show route
+    map.fitBounds([[carPos.lat, carPos.lng], [selectedStation.lat, selectedStation.lng]], { padding:[40,40] });
+  }
+
+  // =========================
+  // LIVE GPS MOVEMENT
+  // =========================
+  function startGPS(){
+    if(!navigator.geolocation){
+      alert("GPS not supported in this browser.");
+      return;
+    }
+
+    navigator.geolocation.watchPosition((pos)=>{
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      const newLatLng = L.latLng(lat,lng);
+
+      carMarker.setLatLng(newLatLng);
+
+      // update route line live
+      if(selectedStation){
+        if(routeLine) map.removeLayer(routeLine);
+        routeLine = L.polyline([newLatLng, [selectedStation.lat, selectedStation.lng]], { weight:5, opacity:0.85 }).addTo(map);
+
+        const eta = estimateETA(lat,lng, selectedStation.lat, selectedStation.lng);
+        document.getElementById("routeBox").innerHTML =
+          `Route: <b>Active</b><br/>ETA: <b>${eta} minutes</b><br/><span style="color:rgba(234,241,255,0.55)">AI calculated time based on distance + traffic assumption</span>`;
+      }
+
+      lastCarLatLng = newLatLng;
+    }, (err)=>{
+      alert("GPS permission denied. Click My Car to use demo movement.");
+    }, { enableHighAccuracy:true, maximumAge:1000 });
+  }
+
+  // demo movement if GPS denied
+  function demoMoveCar(){
+    let t = 0;
+    const base = carMarker.getLatLng();
+
+    const interval = setInterval(()=>{
+      t += 0.00035;
+      const lat = base.lat + (Math.sin(t)*0.002);
+      const lng = base.lng + (Math.cos(t)*0.002);
+      const newLatLng = L.latLng(lat,lng);
+      carMarker.setLatLng(newLatLng);
+
+      if(selectedStation){
+        if(routeLine) map.removeLayer(routeLine);
+        routeLine = L.polyline([newLatLng, [selectedStation.lat, selectedStation.lng]], { weight:5, opacity:0.85 }).addTo(map);
+
+        const eta = estimateETA(lat,lng, selectedStation.lat, selectedStation.lng);
+        document.getElementById("routeBox").innerHTML =
+          `Route: <b>Active</b><br/>ETA: <b>${eta} minutes</b><br/><span style="color:rgba(234,241,255,0.55)">AI calculated time based on distance + traffic assumption</span>`;
+      }
+
+      if(t > 30) clearInterval(interval);
+    }, 700);
+  }
+
+  // =========================
+  // MY BOOKINGS DRAWER
+  // =========================
+  async function openBookings(){
+    const drawer = document.getElementById("drawerBookings");
+    drawer.classList.add("open");
+
+    const res = await fetch(`${API_BASE}/bookings`);
+    const data = await res.json();
+    const bookings = data.bookings || [];
+
+    if(bookings.length === 0){
+      document.getElementById("bookingsTableWrap").innerHTML =
+        `<div style="color:rgba(234,241,255,0.7);padding:10px;">No bookings yet.</div>`;
+      return;
+    }
+
+    let html = `<table>
+      <thead>
+        <tr>
+          <th>Booking ID</th>
+          <th>Station</th>
+          <th>Vehicle</th>
+          <th>Time</th>
+          <th>Payment</th>
+          <th>Status</th>
+          <th>OTP</th>
+        </tr>
+      </thead>
+      <tbody>
+    `;
+
+    bookings.slice().reverse().forEach(b=>{
+      html += `
+        <tr>
+          <td>${b.booking_id}</td>
+          <td>${b.station_name}</td>
+          <td>${b.vehicle_number}</td>
+          <td>${b.from_time} - ${b.to_time}</td>
+          <td>${b.payment_mode}</td>
+          <td>${b.payment_status}</td>
+          <td>${b.otp}</td>
+        </tr>
+      `;
+    });
+
+    html += `</tbody></table>`;
+    document.getElementById("bookingsTableWrap").innerHTML = html;
+  }
+
+  function closeBookings(){
+    document.getElementById("drawerBookings").classList.remove("open");
+  }
+
+  // =========================
+  // EVENTS
+  // =========================
+  document.getElementById("search").addEventListener("input", renderStations);
+
+  document.querySelectorAll(".tab").forEach(t=>{
+    t.addEventListener("click", ()=>{
+      document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+      t.classList.add("active");
+      currentFilter = t.getAttribute("data-filter");
+      renderStations();
+    });
+  });
+
+  document.getElementById("confirmBtn").addEventListener("click", confirmBooking);
+
+  document.getElementById("btnMyCar").addEventListener("click", ()=>{
+    // try GPS, else demo
+    startGPS();
+    map.setView(carMarker.getLatLng(), 15);
+    setTimeout(()=>demoMoveCar(), 1200);
+  });
+
+  document.getElementById("btnBookings").addEventListener("click", openBookings);
+  document.getElementById("closeBookings").addEventListener("click", closeBookings);
+  document.getElementById("drawerBookings").addEventListener("click", (e)=>{
+    if(e.target.id === "drawerBookings") closeBookings();
+  });
+
+  // =========================
+  // START
+  // =========================
+  initMap();
+  fetchStations();
+</script>
+
+</body>
+</html>
